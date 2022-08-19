@@ -26,24 +26,32 @@ export function download(url, path) {
         for (const link of result.file) {
             try {
                 const media_response = await axios.get(link, { responseType: 'stream' });
-                media_response.data.on('data', (data) => {
-                    writer.write(data);
-                });
-                media_response.data.on('error', (error) => {
-                    writer.end();
-                    reject(error);
+                await new Promise((resolve, reject) => {
+                    media_response.data.on('data', (data) => {
+                        if (!writer.write(data))
+                        {
+                            writer.removeAllListeners('drain');
+                            writer.once('drain', () => {
+                                media_response.data.resume();
+                            });
+                            media_response.data.pause();
+                        }
+                    });
+                    media_response.data.on('error', (error) => {
+                        writer.end();
+                        reject(error);
+                    });
+                    media_response.data.on('end', () => {
+                        resolve();
+                    });
                 });
             }
             catch (error) {
                 reject(error);
             } 
-            await new Promise((resolve, reject) => {
-                setTimeout(() => {
-                    resolve();
-                }, 100)
-            })
         }
-        writer.end();
-        resolve();
+        writer.end(() => {
+            resolve();
+        });
     });
 }
