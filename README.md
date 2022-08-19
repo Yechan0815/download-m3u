@@ -1,6 +1,6 @@
-# m3u-to-file
+# download-m3u
 
-`m3u-to-file` is a library that reads `m3u streaming files (m3u8)` and downloads the complete video.
+`download-m3u` is a library that reads `m3u streaming files (m3u8)` and downloads the complete video.
 
 This library can be used like below.
 
